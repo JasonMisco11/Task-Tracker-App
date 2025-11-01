@@ -1,27 +1,31 @@
-import { useState, useEffect } from 'react';
-
+// src/hooks/useTasks.js
+import { useState } from 'react';
 const STORAGE_KEY = 'task-tracker-tasks';
 
 export function useTasks() {
-    const [tasks, setTasks] = useState([]);
-
-    // Load from localStorage on mount
-    useEffect(() => {
+    const [tasks, setTasks] = useState(() => {
+        // Initialize state AND load from localStorage in one go
         const raw = localStorage.getItem(STORAGE_KEY);
         if (raw) {
             try {
-                setTasks(JSON.parse(raw));
+                return JSON.parse(raw);
             } catch (e) {
                 console.error('Failed to parse tasks', e);
             }
         }
-    }, []);
+        return [];
+    });
 
-    // Save whenever tasks change
-    useEffect(() => {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
-        console.log('Tasks saved:', tasks); // Learning: see state changes
-    }, [tasks]);
+    // Single source of truth: update state AND save to localStorage
+    const updateTasks = (updater) => {
+        setTasks((prev) => {
+            const next = typeof updater === 'function' ? updater(prev) : updater;
+            // Save side effect — happens immediately after state update
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+            console.log('Tasks saved:', next); // Learning
+            return next;
+        });
+    };
 
     const addTask = (name, description = '') => {
         const newTask = {
@@ -31,17 +35,17 @@ export function useTasks() {
             completed: false,
             createdAt: new Date().toISOString(),
         };
-        setTasks((prev) => [...prev, newTask]);
+        updateTasks((prev) => [...prev, newTask]);
     };
 
     const toggleTask = (id) => {
-        setTasks((prev) =>
+        updateTasks((prev) =>
             prev.map((t) => (t.id === id ? {...t, completed: !t.completed } : t))
         );
     };
 
     const deleteTask = (id) => {
-        setTasks((prev) => prev.filter((t) => t.id !== id));
+        updateTasks((prev) => prev.filter((t) => t.id !== id));
     };
 
     return { tasks, addTask, toggleTask, deleteTask };
