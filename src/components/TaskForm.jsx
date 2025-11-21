@@ -37,12 +37,10 @@ function TaskForm({ onAdd }) {
           rows={3}
         />
       </div>
-      <button type="submit">Add Task</button>  
+      <button className=' py-2 px-4 rounded-md border-none transition-all duration-500 hover:shadow-[0_0_15px_rgba(255,255,255,1.5)] cursor-pointer' type="submit">Add Task</button>  
     </form>
   );
 }
-TaskForm.propTypes = {
-  onAdd: PropTypes.func.isRequired,  // 'onAdd' is a function and required
-};
+
 
 export default TaskForm;
